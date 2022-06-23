@@ -4,8 +4,8 @@ import re
 import pandas as pd
 
 #path = r"C:\Users\Jouni Kinnunen\Documents\Python Scripts\Master data_työversio 1.xlsx" # full list
-#path = r"C:\Users\Jouni Kinnunen\Documents\Python Scripts\Mpmp.xlsx" #testilista
-path = r"C:\Users\Jouni Kinnunen\Documents\Python Scripts\Master data_työversio_din_iso.xlsx" #worklist
+#path = r"E:\koodit\Git\Mpmp.xlsx" #testilista
+path = r"E:\koodit\Git\Master data_työversio_din_iso.xlsx" #worklist
 
 col_list = ["Item No.", "Item description (local 1)","Specification (local 2)","Part Description","Item Group",
             "Part Description Spec","MrtlSubGroup","Cert Purchase Doc Description","Item type 1"]
@@ -56,7 +56,8 @@ taul_din = ['134','124','125','126','127','128','258','417','427','433','438','4
             "436","443","444","463","464","466","467","470","471",
             "472","508","318","557","561","562","564","571","580",
             "582","604","605","608","609","610","763","787","835",
-            "741","172","522","529","661","705","939","939"]
+            "741","172","522","529","661","705","939","939","928",
+            "923","929"]
 taul_din2 = ['1440','1443','1444','1446','1470','1471','1472','1473','1474',
             '1475','1481',"6336","6334","6340","6796","6797","6798",
             '6799','6325',"6880",'6885','6886','6887','6888',
@@ -99,7 +100,7 @@ taul_m = ["H6","M1","M1,6","M1\\.6","M2","M2,3",
         "M71","M72","M73","M74","M75","M76","M77","M78","M79",
         "M80","M81","M82","M83","M84","M85","M86","M87","M88",
         "M89","M90","M100","kw",'h6','h8','h9','h10']
-taul_colors = ["PZ","VH301GZ","C45","C15E","C15","FZB","BODYCOTE","SMO254","Moventa","Grade A","bronze","SANTOPRENE","YELLOW","YELLOWZPL","YELL","musta","black","harmaa","grey","punainen","pun","red","sininen",
+taul_colors = ["KERB","POZ","PZ","VH301GZ","C45","C15E","C15","FZB","BODYCOTE","SMO254","Moventa","Grade A","bronze","SANTOPRENE","YELLOW","YELLOWZPL","YELL","musta","black","harmaa","grey","punainen","pun","red","sininen",
             "siniharmaa","silver","ZPL","ZPL\\.","ZN-NI","ZNNI","ZNC","ZINK-IRON","ZINCP","ZINC\\.PL",
             "znk","sinkitty","zincfl","ZINCNICKEL","ZINCPLATED","kuuma","KUUMASINKITTY","alum","geo","geomet","500b",
             "ZINCPL","torx","CSK","100 HV","100HV","HV100","HV 100","HV140","HV 140","140HV","140 HV","-140HV","HV200","HV 200","200HV","200 HV",
@@ -116,7 +117,7 @@ taul_colors = ["PZ","VH301GZ","C45","C15E","C15","FZB","BODYCOTE","SMO254","Move
             "nitro","LDX","SDX","HDX","ULTRA","HEP","HARD","Special","PLASTIC","bner","nerinox","mech","MEK\\.","F105","BROWN","gr2","WHITE","ORANGE","MEC\\.","zib","SVART",'316',"aisi",
             "HOLO-CHROME","PRECOTE 80","TAPTITE","sealer","duplex","VAXADE"]
 
-skip_match = ['zn','mp','mps','zp','tx','cu','c15','gt','316','nr','ansi',"pz"]
+skip_match = ['zn','mp','mps','zp','tx','cu','c15','gt','316','nr','ansi',"pz","poz","kerb"]
 
 taul_gleitmo = ["720","627","625","605","603","1:5"]
 taul_hv = ["100","200","140","300"]
@@ -924,7 +925,7 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
     test_split = ""
 
     if b == otsikot - 1: ## määrittelee lopullisen rivitiedon ja siirtää löytyvät rakenteet paikoilleen
-        a = a.replace("nan ","")
+        a = a.replace("nan ","|")
 #        print("Arvo ennen text_split_regexp,ilman nan",a)
         
         text_regex = text_split_regexp(a) # Etsii stringin sanojen sisalta mahdollisia maarityksia
@@ -1001,10 +1002,17 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
             teksti1 = " ".join(text_split)
 #            print(teksti1)
 #            print(text_split[1])
-            x = re.search(text_split[1]+r"-?\s?[AaBbLlNnfFcCgZzKkMm]\s?-?/?[+]?\s?[bBZzfFhH]?\s",teksti1)
+#            x = re.search(text_split[1]+r"-?\s?[AaBbLlNnfFcCgZzKkMm]\s?-?/?[+]?\s?[bBZzfFhH]?\s",teksti1)
+            x = re.findall(text_split[1]+r"-?\s?[AaBbLlNnfFcCgZzKkMmhHPp]\s?-?/?[+]?\s?[bBZzfFhH]?\s",teksti1)
 #            print(x)
+            if len(x) > 0:
+                x1 = x[0]
+                for i in x:
+                    if len(i) > len(x1):
+                        x1 = i
+                x = x1
             if x:
-                x = str(x.group(0))
+                x = str(x)
                 x = x.strip()
                 x = x.replace(" ","")
                 if x[-2] == '-':
@@ -1188,6 +1196,8 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
                 tekstisyotto = 'EN ' + taul_en[i]
                 return tekstisyotto
             elif a[0:1] == 'EN':
+                print("pog",a[2:7])
+                print(taul_en[i])
                 if a[2:7] == taul_en[i]: #eitoimi, korjaa
                     tekstisyotto = 'EN ' + taul_en[i]
                     print(tekstisyotto)
@@ -1255,7 +1265,7 @@ def analyze_itemnr(a):
         teksti = teksti + ' HOLO-CHROME'
     if itemnro[-1] == 'W':
         teksti = teksti + ' WAX'
-    if itemnro[-3:] == 'F105':
+    if itemnro[-4:] == 'F105':
         teksti = teksti + ' F105'
 #    teksti = teksti.replace(itemnro,'')
     return teksti
@@ -1273,33 +1283,32 @@ for i in range(rivit): ## Loopataan rivit
     orig_std = ''
     for j in range(otsikot): ## Loopataan kolumnit per rivi
         tekstisyotto += str(data.iloc[i,j]) ## Haetaan indexin perusteella rivitieto
-        if j == 1:
+        if j == 1: #katsotaan mitä certifikaattiarvoja on laitettu tuotteen descriptioniin joita vertaillaan myöhemmin onko oikea koodi generoitu
             x = re.search(r'din',str(data.iloc[i,j]).casefold())
             if bool(x):
                 orig_std += 'DIN'
-                data['Orig standard'][i] = orig_std
-            x = re.search(r'iso',str(data.iloc[i,j]).casefold())
+            x = re.search(r'(?<!g\s)iso(?![-fk])(?!\sf)',str(data.iloc[i,j]).casefold())
             if bool(x):
                 if len(orig_std) > 0:    
                     orig_std += ' ISO'
                 else:
                     orig_std = 'ISO'   
-                    data['Orig standard'][i] = orig_std
-            x = re.search(r'ansi',str(data.iloc[i,j]).casefold())
+            x = re.search(r"(?<!k)ansi",str(data.iloc[i,j]).casefold())
             if bool(x):
                 if len(orig_std) > 0:    
                     orig_std += ' ANSI'
                 else:
-                    orig_std = 'ANSI'   
-                    data['Orig standard'][i] = orig_std            
-            
+                    orig_std = 'ANSI'          
             if len(orig_std) == 0:
                 data['Orig standard'][i] = 'Empty'
+            else:
+                data['Orig standard'][i] = orig_std
 
         if j == 0:
+#            print(tekstisyotto)
             if tekstisyotto[-1].casefold() == 'x':
                 tekstisyotto = tekstisyotto[:-1]+'|'
-            analyzed_itemnr = analyze_itemnr(tekstisyotto)
+            analyzed_itemnr = analyze_itemnr(tekstisyotto) #etsitään tuotekoodista mahdollisia lisäarvoja (ensimmäinen column)
 #            print(analyzed_itemnr,"analysoitu")
         syote = identify(tekstisyotto,j,i) ## Ohjelma joka tunnistaa indexin perusteella toimenpiteet (Alku ja loppu). Lisainfo-kentta viedaan taalla
 
@@ -1310,28 +1319,25 @@ for i in range(rivit): ## Loopataan rivit
             tekstisyotto +=' ' + analyzed_itemnr
         tekstisyotto += ' ' ## Lisaa valilyonnin haettujen rivitietojen peraan erotellen kolumnitiedot
 
-
     data['Luetut'][i] = len(tekstisyotto.split())
-
 #    print("Tekstisyoton muoto ennen kasittelya=",tekstisyotto,"syote =",syote)
     rem_dupl = remove_duplicates(tekstisyotto) ## Poistaa duplikaatit stringista, hyvaksyy stringin ja palauttaa sen
 #    print("Duplikaatio poistojen tuotos=",rem_dupl)
     rem_dupl_index = generate_zinc(rem_dupl) ## Etsii sinkin määrittelyjä ja rakentaa arvon niiden perusteella
 #    print("Sinkkigeneraation tuotos=",rem_dupl_index)
-    rem_dupl_index1 = generate_others(rem_dupl_index)
+    rem_dupl_index1 = generate_others(rem_dupl_index) #rakennetaan muita kuin sinkki variaatioita
 #    print("Muiden generaatioiden tuotos",rem_dupl_index1)
-    Lisainfo = str(data.iloc[i,linsainfo_index])
+    Lisainfo = str(data.iloc[i,linsainfo_index]) #Haetaan lisainfo-kentta
 #    print("lisainfo =",Lisainfo)
     sized = get_size(rem_dupl_index1,Lisainfo) # hakee lisainfo-kentasta M-arvon jälkeen löytyvät numerot joissa kriteerinä x-arvo
     cosmetics = cosmetics_mod(sized)
 #    print(cosmetics)
-    data['Syotetyt'][i] = len(cosmetics.split())
     data['Tekstinsyotto'][i] = cosmetics ## Rakenteen vienti kenttaan Tekstisyotto 
+    data['Syotetyt'][i] = len(cosmetics.split())
 
-
-#data.to_csv(r'C:\Users\Jouni Kinnunen\Documents\Python Scripts\Master data_työversio 1_modified.csv')
-
-data.to_csv(r'C:\Users\Jouni Kinnunen\Documents\Python Scripts\Master data_työversio_din_iso_modified_modified.csv') #tallennus
+#data.to_csv(r'E:\koodit\Git\Master data_työversio 1_modified.csv')
+data.to_csv(r'E:\koodit\Git\Master data_työversio_din_iso_modified.csv') #tallennus
+#data.to_csv(r'E:\koodit\Git\Mpmp.csv')
 
 #print('Columnit:\n',data,'\n') #columni check
 #print(data.iloc[1635,5],"Arvo m8x") #rivitieto check, ensimmäinen index rivi- ja toinen kolumni-index
