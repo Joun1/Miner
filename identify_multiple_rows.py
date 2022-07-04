@@ -16,7 +16,7 @@ data['MrtlSubGroup'] = data['MrtlSubGroup'].str.replace('/','|')
 data['MrtlSubGroup'] = data['MrtlSubGroup'].str.replace('Steel other with lead content <0,1%','|')
 data['Item type 1'] = data['Item type 1'].str.replace(r'Geomet, Geoblack,Delta, Magni \(Zinc Flak','')
 data['MrtlSubGroup'] = data['MrtlSubGroup'].str.replace(r'Steel 4\.6-6\.8 \(4-6\)',r'Steel 4\|6-6\|8 \(4-6\)')
-
+data['Specification (local 2)'] = data['Specification (local 2)'].str.replace(r'\xB5',r'MY')
 
 global otsikot #tiedoston otsikoiden määrä
 otsikot = len(data.columns)
@@ -25,6 +25,7 @@ print("otsikkojen maara=",otsikot)
 rivit = len(indexi) #tiedoston rivimäärä
 print("rivien maara=",rivit)
 linsainfo_index = otsikot + 1
+
 
 #iso taulut sisältävät vain 4 ja 5 kirjaimiset koodit
 #din taulut sisältävät vain 3 ja 4 kirjaimiset koodit
@@ -57,7 +58,7 @@ taul_din = ['134','124','125','126','127','128','258','417','427','433','438','4
             "472","508","318","557","561","562","564","571","580",
             "582","604","605","608","609","610","763","787","835",
             "741","172","522","529","661","705","939","939","928",
-            "923","929"]
+            "923","929","968","975","988"]
 taul_din2 = ['1440','1443','1444','1446','1470','1471','1472','1473','1474',
             '1475','1481',"6336","6334","6340","6796","6797","6798",
             '6799','6325',"6880",'6885','6886','6887','6888',
@@ -115,7 +116,7 @@ taul_colors = ["KERB","POZ","PZ","VH301GZ","C45","C15E","C15","FZB","BODYCOTE","
             "DIPP","GALV","GAL\\.","ZINC FLAKE","Flake","Silv","RAUTA","passi","delt","GEO5B","DRI-LOCK","DRI-LOC","DRILOCK","tuflok","Nordlock","znfl",
             "SINKKI-NIKKELI","ZNPL","NIKKELI","sink","zinc","VAHATTU","PLTD","zn","ZP","6az","QT","240h","480h","500h","720h","cer","SDX109",
             "nitro","LDX","SDX","HDX","ULTRA","HEP","HARD","Special","PLASTIC","bner","nerinox","mech","MEK\\.","F105","BROWN","gr2","WHITE","ORANGE","MEC\\.","zib","SVART",'316',"aisi",
-            "HOLO-CHROME","PRECOTE 80","TAPTITE","sealer","duplex","VAXADE"]
+            "HOLO-CHROME","PRECOTE 80","TAPTITE","sealer","duplex","VAXADE","S235JR"]
 
 skip_match = ['zn','mp','mps','zp','tx','cu','c15','gt','316','nr','ansi',"pz","poz","kerb"]
 
@@ -446,7 +447,7 @@ def generate_zinc(a): ## Ohjelma etsii stringistä arvoja sinkistä josta lopull
         j = 0
         while len(taul_pass) > j:    
             if text_string[i].casefold() == taul_pass[j].casefold():
-#                print("test")
+#                print(text_string)
                 if text_string[i].casefold() == 'MP'.casefold() or text_string[i].casefold() == 'MPS'.casefold():
                     black = True
                     zinc = True
@@ -574,6 +575,8 @@ def generate_zinc(a): ## Ohjelma etsii stringistä arvoja sinkistä josta lopull
     if nickel:
         text_string.append('NI')
         return " ".join(list(dict.fromkeys(text_string)))
+    if passivated and black:
+        text_string.append('MP')
 
 #    if flake:
 #       text_string.append('FLZN')
@@ -825,9 +828,50 @@ def get_size(tekstisyotto,Lisainfo): # Hakee Lisainfo-kentästä kokotiedot (x-a
                 if x:
                     text_string.insert(text_string.index(i) + 1,j)
     x = re.search(r"\d*[,.]?\d+\s?[Mm][Mm]",Lisainfo)
+
+#    Lisainfo = Lisainfo.replace('µ','MY')
+
     if bool(x):
         x = x[0].replace(" ","")
         text_string.append(x)
+
+    x = re.search(r'\d*UM',Lisainfo)
+    if bool(x):
+#        print('UM found',x)
+        if len(x[0]) > 2:
+            x = x[0]
+            x = x.replace(" ","")
+            x = x.replace('UM','MY')
+            text_string.append(x)
+    x = re.search(r'\d*-?\d*\s?MY',Lisainfo)
+    if bool(x):
+#        print('MY found',x)
+        if len(x[0]) > 2:
+            x = x[0]
+            x = x.replace(" ","")
+            text_string.append(x)
+    x = re.search(r'\d*-?\d*\s?YM',Lisainfo)
+    if bool(x):
+#        print('MY found',x)
+        if len(x[0]) > 1:
+            x = x[0]
+            x = x.replace(" ","")
+            x = x.replace("YM","MY")
+            text_string.append(x)     
+#    x = re.search(r'\d*-?\d*\s?',Lisainfo)
+#    if bool(x):
+#        print('µ',x)
+#        if len(x[0]) > 1:
+#            x = x[0]
+#            x = x.replace("µ","MY")
+#            text_string.append(x)
+    x = re.search(r'PRECOTE\s?\d*-?\d*',Lisainfo)
+    if bool(x):
+#        print('MY found',x)
+        if len(x[0]) > 7:
+            x = x[0]
+            text_string.append(x)     
+
 
     return " ".join(list(dict.fromkeys(text_string)))
 
@@ -925,7 +969,7 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
     test_split = ""
 
     if b == otsikot - 1: ## määrittelee lopullisen rivitiedon ja siirtää löytyvät rakenteet paikoilleen
-        a = a.replace("nan ","|")
+        a = a.replace("nan ","")
 #        print("Arvo ennen text_split_regexp,ilman nan",a)
         
         text_regex = text_split_regexp(a) # Etsii stringin sanojen sisalta mahdollisia maarityksia
@@ -972,7 +1016,7 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
             
             while text_split:
                 x = text_split[0]
-
+#                print(x)
                 if x == 'ISO'.casefold() or x[0:3] == 'ISO'.casefold():
                     break
                 elif x == 'DIN'.casefold() or x[0:3] == 'DIN'.casefold():
@@ -1165,8 +1209,7 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
         data['Lisainfo'][c] = lisainfo_join.upper() # Vienti lisainfo-kenttaan
         return " ".join(text_split) # Tekstisyoton palautus stringina
     if b == 0: #ensimmainen vaihe, din- ja isotaulujen lapikaynti verraten 3 ja 4 ensimmaiseen item nroon
-
-        
+ 
         for i in range(len(taul_din)):
             if a[0:3] == taul_din[i]:
                 tekstisyotto = 'DIN ' + taul_din[i]
