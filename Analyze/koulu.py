@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LinearRegression
 import re
+import seaborn as sns
 
 #path = r'C:\Users\Jouni Kinnunen\Documents\Python Scripts\Master data_työversio 1_modified.csv'
 path = r'E:\koodit\Git\Master data_työversio_din_iso_modified.csv'
@@ -31,9 +32,9 @@ data.plot(color=['blue','green'],y=['Luetut','Luetut mean'],grid=True,ax=ax2)
 
 
 
-lista ={'col_1':['mean','std','min','max'],
-        'Syotetyt':[data['Syotetyt'].mean(),data['Syotetyt'].std(),data['Syotetyt'].min(),data['Syotetyt'].max()],
-        'Luetut':[data['Luetut'].mean(),data['Luetut'].std(),data['Luetut'].min(),data['Luetut'].max()]}
+lista ={'col_1':['mean','std','min','10%','50%','90%','max'],
+        'Syotetyt':[data['Syotetyt'].mean(),data['Syotetyt'].std(),data['Syotetyt'].min(),data['Syotetyt'].quantile(0.10),data['Syotetyt'].quantile(0.50),data['Syotetyt'].quantile(0.90),data['Syotetyt'].max()],
+        'Luetut':[data['Luetut'].mean(),data['Luetut'].std(),data['Luetut'].min(),data['Luetut'].quantile(0.10),data['Luetut'].quantile(0.50),data['Luetut'].quantile(0.90),data['Luetut'].max()]}
 
 df = pd.DataFrame.from_dict(lista)
 ex = df.plot(kind='bar',x='col_1',color=['red','blue'])
@@ -59,8 +60,10 @@ regressor.fit(x, y)
 
 y_pred = regressor.predict(x)
 col =['red','green']
-plt.scatter(x, y, c='red')
+sns.scatterplot(data["Luetut"],data["Syotetyt"],color='r')
+sns.kdeplot(data["Luetut"],data["Syotetyt"],c='b',levels=3)
 plt.plot(x, y_pred,c='green')
+
 plt.title('Luetut vs Syotetyt')
 plt.xlabel('Luetut')
 plt.ylabel('Syotetyt')
