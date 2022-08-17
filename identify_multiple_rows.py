@@ -28,7 +28,7 @@ linsainfo_index = otsikot + 1
 
 
 #iso taulut sisältävät vain 4 ja 5 kirjaimiset koodit
-#din taulut sisältävät vain 3 ja 4 kirjaimiset koodit
+#din taulut sisältävät vain 3,4 ja 5 kirjaimiset koodit
 
 
 taul_en = ['14399']
@@ -42,8 +42,8 @@ taul_iso = ['2339','2338','1207','1580','1234','7089','7090','7091',
             '8741','8742','8752','8734','2491','3912','7411','7412',
             '4775','7413','7414','7415','8102','4162','4161','7041',
             '7043','7044','7053','8750','8751','8748','1481','1482',
-            '1483','8736','8733','8735','7049','7050','7051',
-            '7045','7093','7046',"1581","7048","7379","7380"]
+            '1483','8736','8733','8735','7049','7050','7051','7045',
+            '7093','7046',"1581","7048","7379","7380"]
 taul_iso2 = ['21269','10513','10512','10669','10673','12125','12126',
             '10509','13337','15480','15481','15482','15483','10642',
             '13918','14579','10511','10642','14580','14586',
@@ -833,6 +833,8 @@ def get_size(tekstisyotto,Lisainfo): # Hakee Lisainfo-kentästä kokotiedot (x-a
 
     if bool(x):
         x = x[0].replace(" ","")
+        if x[0] == ".":
+            x = x.replace(x[0],"")
         text_string.append(x)
 
     x = re.search(r'\d*UM',Lisainfo)
@@ -1018,9 +1020,12 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
                 x = text_split[0]
 #                print(x)
                 if x == 'ISO'.casefold() or x[0:3] == 'ISO'.casefold():
+                    if len(x) > 3:
+                        text_split[0] = text_split[0].replace(x[0:3],"ISO ")
                     break
                 elif x == 'DIN'.casefold() or x[0:3] == 'DIN'.casefold():
-
+                    if len(x) > 3:
+                        text_split[0] = text_split[0].replace(x[0:3],"DIN ")
                     break
                 lisainfo.append(text_split.pop(0))
                 if len(text_split) == 0:
@@ -1032,7 +1037,7 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
                     text_split.append(lisainfo.pop(lisainfo.index(lisainfo[0])))
                     if len(lisainfo) == 0:
                         break
-        
+#        print(text_split,"isodin")
         if iso_din:
             x1 = text_split[1]
             if x1[-1].casefold() == 'A'.casefold() or x1[-1].casefold() == 'B'.casefold():
@@ -1044,7 +1049,7 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
                     text_split[1] = x1
 
             teksti1 = " ".join(text_split)
-#            print(teksti1)
+#            print(teksti1,"teksti1")
 #            print(text_split[1])
 #            x = re.search(text_split[1]+r"-?\s?[AaBbLlNnfFcCgZzKkMm]\s?-?/?[+]?\s?[bBZzfFhH]?\s",teksti1)
             x = re.findall(text_split[1]+r"-?\s?[AaBbLlNnfFcCgZzKkMmhHPp]\s?-?/?[+]?\s?[bBZzfFhH]?\s",teksti1)
@@ -1097,9 +1102,8 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
                 text_split[1] = y[0]
 
 
-                
-            
         
+#        print(insert_index,"index",text_split,"teksti")
         
         for i in range(len(text_split)):
             for j in range(len(taul_material)): ## Rakenteen ensimmainen osa
@@ -1108,11 +1112,12 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
                     text_split.insert(insert_index,move_detail)
                     t_material = True
                     insert_index += 1
-                     
-
+#                    break
+#        print(insert_index,"index",text_split,"teksti")                     
+#        print(insert_index,"index",text_split,"teksti")
         for i in range(len(text_split)):
             for j in range(len(taul_kovuus)): ## Rakenteen toinen osa
-                if text_split[i].casefold() == taul_kovuus[j].casefold():
+                if text_split[i].casefold() == taul_kovuus[j].casefold() and i > insert_index:
                     move_detail = text_split.pop(i)
                     text_split.insert(insert_index,move_detail)
                     t_kovuus = True
@@ -1130,6 +1135,7 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
                     t_a = True
                     insert_index += 1
 #        print("text_split=",text_split)
+#        print(insert_index,"index",text_split,"teksti")
         for i in range(len(text_split)):
             for j in range(len(taul_m)): ## Rakenteen neljas osa
                 if text_split[i].casefold() == taul_m[j].casefold():
@@ -1139,6 +1145,7 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
 #                    print("move_detail=",move_detail)
                     insert_index += 1
 #        print(text_split,"HEP!",t_m,"t_m?")
+#        print(insert_index,"index",text_split,"teksti")
         if t_m == False:
             text_split = (" ".join(text_split))
             x = re.search(r"\bm[M]?[\s+]?\d+[.,]?[\d+]?",text_split)
@@ -1162,7 +1169,7 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
                             break
             else:
                 text_split = text_split.split()
-        
+#        print(insert_index,"index",text_split,"teksti")        
         for i in range(len(text_split)):
             for j in range(len(taul_colors)): ## Rakenteen viimeinen osa    
                 if text_split[i].casefold() == taul_colors[j].casefold() and i > 1:
@@ -1170,17 +1177,20 @@ def identify(a,b,c): # a = tekstisyotto, b = column-index, c = rivi-index
                     text_split.insert(insert_index,move_detail)
                     t_colors = True
                     insert_index += 1
+#                    print("hep!",taul_colors[j])
+#                    break
 #        print(insert_index,"index mista splitataan=",text_split[insert_index])
+#        print(insert_index,"index mista splitataan=")
 #        text_split = remove_duplicates(" ".join(text_split))
 #        text_split = text_split.split()
-#        print("Teksti ennen ylijaaman asettamista= ",text_split)
+#        print(insert_index,"index",text_split,"teksti")
 #        if ansi:
 #            text_split = ansi_struct(text_split)
 #            text_split = (" ".join(text_split))
 #            print(text_split)
 #            return text_split
-        for i in range(insert_index,len(text_split)): # Ylijaamien määrittely lisainfo-kolumnille jotka eivat osuneet rakenteeseen
-            
+
+        for i in range(insert_index,len(text_split)): # Ylijaamien määrittely lisainfo-kolumnille jotka eivat osuneet rakenteeseen            
             ylijaama = text_split.pop(insert_index)
 #            print("Ylijaamaan siirtymassa= ",ylijaama,"index",insert_index)
             lisainfo.append(ylijaama)
@@ -1346,7 +1356,6 @@ for i in range(rivit): ## Loopataan rivit
                 data['Orig standard'][i] = 'Empty'
             else:
                 data['Orig standard'][i] = orig_std
-
         if j == 0:
 #            print(tekstisyotto)
             if tekstisyotto[-1].casefold() == 'x':
@@ -1354,14 +1363,12 @@ for i in range(rivit): ## Loopataan rivit
             analyzed_itemnr = analyze_itemnr(tekstisyotto) #etsitään tuotekoodista mahdollisia lisäarvoja (ensimmäinen column)
 #            print(analyzed_itemnr,"analysoitu")
         syote = identify(tekstisyotto,j,i) ## Ohjelma joka tunnistaa indexin perusteella toimenpiteet (Alku ja loppu). Lisainfo-kentta viedaan taalla
-
         if tekstisyotto != syote: ## Tarkistetaan onko identify-ohjelma tehnyt muutoksia tekstisyotto kenttaan, jos on niin maaritellaan arvo uusiksi.
             tekstisyotto = syote ## Korvaa Tekstisyotto stringin jos alkuperainen kolumni-tieto ei tasmaa
 #            print(tekstisyotto,"syote korvannut tekstin")
         if len(analyzed_itemnr) > 0 and j == 0:
             tekstisyotto +=' ' + analyzed_itemnr
         tekstisyotto += ' ' ## Lisaa valilyonnin haettujen rivitietojen peraan erotellen kolumnitiedot
-
     data['Luetut'][i] = len(tekstisyotto.split())
 #    print("Tekstisyoton muoto ennen kasittelya=",tekstisyotto,"syote =",syote)
     rem_dupl = remove_duplicates(tekstisyotto) ## Poistaa duplikaatit stringista, hyvaksyy stringin ja palauttaa sen
