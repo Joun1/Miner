@@ -1328,8 +1328,8 @@ def analyze_itemnr(a):
 
 data['Tekstinsyotto'] = '' ## Rakenne kolumnin luonti
 data['Lisainfo'] = '' ## Lisainfo kentan luonti
-data['Syotetyt'] = ''
-data['Luetut'] = ''
+data['Output'] = ''
+data['Input'] = ''
 data['Orig standard'] = ''
 for i in range(rivit): ## Loopataan rivit
     tekstisyotto = '' ## Maaritellaan tekstikentta tyhjaksi
@@ -1369,7 +1369,7 @@ for i in range(rivit): ## Loopataan rivit
         if len(analyzed_itemnr) > 0 and j == 0:
             tekstisyotto +=' ' + analyzed_itemnr
         tekstisyotto += ' ' ## Lisaa valilyonnin haettujen rivitietojen peraan erotellen kolumnitiedot
-    data['Luetut'][i] = len(tekstisyotto.split())
+    data['Input'][i] = len(tekstisyotto.split())
 #    print("Tekstisyoton muoto ennen kasittelya=",tekstisyotto,"syote =",syote)
     rem_dupl = remove_duplicates(tekstisyotto) ## Poistaa duplikaatit stringista, hyvaksyy stringin ja palauttaa sen
 #    print("Duplikaatio poistojen tuotos=",rem_dupl)
@@ -1383,7 +1383,7 @@ for i in range(rivit): ## Loopataan rivit
     cosmetics = cosmetics_mod(sized)
 #    print(cosmetics)
     data['Tekstinsyotto'][i] = cosmetics ## Rakenteen vienti kenttaan Tekstisyotto 
-    data['Syotetyt'][i] = len(cosmetics.split())
+    data['Output'][i] = len(cosmetics.split())
 
 #data.to_csv(r'E:\koodit\Git\Master data_työversio 1_modified.csv')
 data.to_csv(r'E:\koodit\Git\Master data_työversio_din_iso_modified.csv') #tallennus
