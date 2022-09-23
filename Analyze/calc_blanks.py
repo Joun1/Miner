@@ -6,7 +6,7 @@ import re
 import seaborn as sns
 
 #path = r'E:\koodit\Git\Master data_työversio_din_iso_modified.csv'
-path = r"E:\koodit\Git\Master data_työversio_din_iso.xlsx"
+path = r"C:\Users\Jouni Kinnunen\Documents\Python Scripts\Master data_työversio_din_iso.xlsx"
 col_list = ["Item No.", "Item description (local 1)","Specification (local 2)","Part Description","Item Group",
             "Part Description Spec","MrtlSubGroup","Cert Purchase Doc Description","Item type 1"]
 df = pd.read_excel(path, usecols=col_list)
@@ -19,9 +19,11 @@ data = []
 
 for i in df.columns:
     temp =[i,df[i].isnull().sum()]
-    data.append(temp)
+    if df[i].isnull().sum() > 0:
+        data.append(temp)
 
 data = pd.DataFrame(data)
+data = data.sort_values(by=data.columns[1],ascending=False)
 
 ex = data.plot(kind='bar',x=data.columns[0],legend=False)
 for p in ex.patches:
